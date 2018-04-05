@@ -8,3 +8,6 @@
 
 ## PTHREADS
 [pthreads](https://github.com/kripken/emscripten/wiki/Pthreads-with-WebAssembly)
+
+## JavaScrip C++ bindings
+[embind](https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/embind.html)
