@@ -25,6 +25,11 @@
 #include <iomanip>
 #include <string>
 
+/** For binding JavaScript and C++ */
+#include <emscripten/bind.h>
+#include <emscripten/val.h>
+using namespace emscripten;
+
 using namespace std;
 
 const unsigned int MAX_BEST_L = 305;
@@ -216,6 +221,75 @@ int main_old(int argc, char *argv[]) {
 
 	saw.run();
 	return 0;
+}
+
+/**
+  * The binding block defines a chain of member function calls on the temporary class_ object (this same style is used in Boost.Python). The functions register the class, its constructor(), member function(), class_function() (static) and property().
+  *
+  * Example:
+  * // Class in C++
+  * class MyClass {
+  * public:
+  * 	MyClass(int x, std::string y) : x(x), y(y) {}
+  * 	void incrementX() { ++x; }
+  * 	int getX() const { return x; }
+  * 	void setX(int x_) { x = x_; }
+  * 	static std::string getStringFromInstance(const MyClass& instance) { return instance.y; }
+  * private:
+  * 	int x;
+  * 	std::string y;
+  * };
+  *
+  * // Binding code
+  * EMSCRIPTEN_BINDINGS(my_class_example) {
+  * 	class_<MyClass>("MyClass")
+  * 		.constructor<int, std::string>()
+  * 		.function("incrementX", &MyClass::incrementX)
+  * 		.property("x", &MyClass::getX, &MyClass::setX)
+  * 		.class_function("getStringFromInstance", &MyClass::getStringFromInstance)
+  * 	;
+  * }
+  *
+  * Usage in JavaScript:
+  * var instance = new Module.MyClass(10, "hello");
+  * instance.incrementX();
+  * instance.x; // 11
+  * instance.x = 20; // 20
+  * Module.MyClass.getStringFromInstance(instance); // "hello"
+  * instance.delete();
+  */
+EMSCRIPTEN_BINDINGS(saw_class) {
+	class_<SAW>("SAW")
+	.constructor<>()
+	.property("runtimeLmt", &SAW::getRuntimeLmt, &SAW::setRuntimeLmt)
+	.property("walkLenghtFactor", &SAW::getWalkLength, &SAW::setWalkLength)
+	.property("laevus", &SAW::getLaevus, &SAW::setLaevus)
+	.property("L", &SAW::getL, &SAW::setL)
+	.property("valueTarget", &SAW::getValueTarget, &SAW::setValueTarget)
+	.function("getSeed", &SAW::getSeed)
+	.function("setSeed", &SAW::setSeed)
+	.function("run", &SAW::run)
+	.function("setVerbose", &SAW::setVerbose)
+	.function("getD", &SAW::getD)
+	.function("printInfo", &SAW::printInfo)
+	.function("printHeader", &SAW::printHeader)
+	.function("printResults", &SAW::printResults)
+	;
+	/*
+	 * Uporava v JavaScriptu:
+	 * ...
+	 * var saw = new Module.SAW();
+	 * ...
+	 * saw.setVerbose();
+	 * saw.L = 171;
+	 * // Blocking mode
+	 * saw.run();
+	 * saw.printInfo();
+	 * ...
+	 * // Must use this statement
+	 * saw.delete();
+	 * ...
+	 */
 }
 
 int main() {
