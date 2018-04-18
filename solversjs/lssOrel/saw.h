@@ -30,8 +30,10 @@ class SAW
 {
 public:
 	SAW();
+
 	void run();
 
+	inline unsigned int getL() const { return L; }
 	inline void setL(const unsigned int L){
 		if(L >= MAX_L){
 			cerr<<"Error: L = "<<L<<"!"<<endl;
@@ -41,35 +43,44 @@ public:
 		D=(L+1)/2;
 	}
 
-	inline void setWalkLength(const double walkLength) {
-		walkLengthFactor = walkLength;
-	}
-	inline double getWalkLength() {
-		return walkLengthFactor;
-	}
-	inline void setLaevus(const unsigned int laevus){ this->laevus = laevus; }
-	inline void setName(const string & name){ this->progName = name; }
-	inline void setArgs(const string & args){ this->args = args; }
-	inline void setValueTarget(const unsigned int targetValue) { this->valueTarget = targetValue; }
-	inline void setRuntimeLmt(const unsigned int runtimeLmt) { this->runtimeLmt = runtimeLmt; }
-	inline void setSeed(const unsigned short seed[3]) { memcpy(this->seed,seed,3*sizeof(short)); }
-	inline void setVerbose(){ verbose = true; }
-	inline void setCoordInit(const char coordInit[MAX_S_SIZE+1]) { memcpy(this->coordInit,coordInit,MAX_S_SIZE+1); }
+	inline double getWalkLength() { return walkLengthFactor; }
+	inline void setWalkLength(const double walkLength) { walkLengthFactor = walkLength; }
 
-	inline unsigned int getL() const { return L; }
 	inline unsigned int getLaevus() const { return laevus; }
+	inline void setLaevus(const unsigned int laevus){ this->laevus = laevus; }
+
+	inline void setValueTarget(const unsigned int targetValue) { this->valueTarget = targetValue; }
 	inline unsigned int getValueTarget() const { return valueTarget; }
-	inline unsigned int getRuntimeLmt() const { return runtimeLmt; }
+
+	inline bool getVerbose() { return verbose; }
+	inline void setVerbose(bool verbose){ this->verbose = verbose; }
+
 	inline unsigned short int getSeed(const unsigned int i) const { return seed[i]; }
+	inline void setSeed(const unsigned short seed[3]) { memcpy(this->seed, seed, 3 * sizeof(short)); }
+
+	inline unsigned int getRuntimeLmt() const { return runtimeLmt; }
+	inline void setRuntimeLmt(const unsigned int runtimeLmt) { this->runtimeLmt = runtimeLmt; }
+
 	inline unsigned int getD() const { return D; }
-#ifndef NDEBUG
-	inline void setTrace() { trace = true;};
-	inline void setWalk() { walk = true;};
-#endif
+	inline void setD(unsigned int D) { this->D = D; }
+
+	inline void setName(const string & name){ this->progName = name; }
+
+	inline void setArgs(const string & args){ this->args = args; }
+
+	inline void setCoordInit(const char coordInit[MAX_S_SIZE+1]) { memcpy(this->coordInit, coordInit, MAX_S_SIZE+1); }
 
 	void printInfo();
 	void printHeader(ostream& stream, const bool outputFile=false);
 	void printResults();
+
+#ifndef NDEBUG
+	inline bool getTrace() { return trace; }
+	inline void setTrace(bool trace) { this->trace = trace; }
+
+	inline bool getWalk() { return walk; }
+	inline void setWalk(bool walk) { this->walk = walk; }
+#endif
 
 private:
 	bool stoppingCriterion();
@@ -95,12 +106,6 @@ private:
 	unsigned short seed[3];
 
 	static const unsigned int w;
-#ifndef NDEBUG
-	bool trace;
-	bool walk;
-	unsigned int step;
-	ofstream fileStream;
-#endif
 
 	char coordInit[MAX_S_SIZE+1];
 
@@ -112,6 +117,14 @@ private:
 
 	bool verbose;
 	unordered_set<uint64_t> path;
+
+#ifndef NDEBUG
+	bool trace;
+	bool walk;
+
+	unsigned int step;
+	ofstream fileStream;
+#endif
 
 };
 

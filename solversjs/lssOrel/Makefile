@@ -8,10 +8,14 @@ NAME=lssOrel
 BIN=$(NAME)
 
 ifndef MAX_L
-MAX_L=512
+	MAX_L=512
 endif
- 
-CXXFLAGS=-s VERBOSE=1 -s WASM=1 -s ASSERTIONS=1 -std=c++0x -DMAX_L=$(MAX_L) -DNAME='\"$(NAME)\"' -DVERSION='\"$(VERSION)\"' 
+
+CXXFLAGS=-std=c++0x -DMAX_L=$(MAX_L) -DNAME='\"$(NAME)\"' -DVERSION='\"$(VERSION)\"'
+EMFLAGS=-s VERBOSE=1 -s ASSERTIONS=1
+EMFLAGSWASM=$(EMFLAGS) -s WASM=1
+EMFLAGSJS=$(EMFLAGS) -s WASM=0
+BINDCPPJS=--bind -DBINDCPPJS
 
 ifeq ($(SSE4.2),true)
 	CXXFLAGS:=$(CXXFLAGS) -msse4.2
@@ -29,28 +33,39 @@ endif
 OBJ=sequence.o saw.o main.o
 
 all:
-	rm -f *.o $(BIN)
-	make $(BIN) CXXFLAGS="$(CXXFLAGS) -DNDEBUG -g0 -O3"
-	#strip $(BIN)
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -g0 -O3"
+
+wasmall:
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -g0 -O3"
+
+jsall:
+	make $(BIN) CXXFLAGS="$(EMFLAGSJS) $(CXXFLAGS) -DNDEBUG -g0 -O3"
+
+cpp2jswasm:
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(BINDCPPJS) $(CXXFLAGS) -DNDEBUG -g0 -O3"
+
+cpp2jsjs:
+	make $(BIN) CXXFLAGS="$(EMFLAGSJS) $(BINDCPPJS) $(CXXFLAGS) -DNDEBUG -g0 -O3"
 
 debug:
-	make $(BIN) CXXFLAGS="$(CXXFLAGS) -g3"
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -g3"
 
 profile:
-	make $(BIN) CXXFLAGS="$(CXXFLAGS) -DNDEBUG -pg -O3"
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -pg -O3"
 
 profile2:
-	make $(BIN) CXXFLAGS="$(CXXFLAGS) -DNDEBUG -fprofile-arcs -ftest-coverage"
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -fprofile-arcs -ftest-coverage"
 
 $(BIN): $(OBJ) *.h
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN).html
+	$(CXX) $(EMFLAGSWASM) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN).html
 
 $(BIN)B: $(OBJ) *.h
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN)B
+	$(CXX) $(EMFLAGSWASM) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN)B
 
 %.o : %.cpp *.h
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(EMFLAGSWASM) $(CXXFLAGS) $< -o $@
 
 clean:
 	rm -f *.o $(BIN) *.gcda *.gcno *.gcov lssOrel.so 
-	rm -f *.gch *.js *.html *.wasm                                                                                                                                                                                                                                                                  
+	rm -f *.gch *.js *.html *.wasm
+
