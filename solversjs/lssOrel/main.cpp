@@ -223,7 +223,7 @@ int main_old(int argc, char *argv[]) {
 	return 0;
 }
 
-#ifndef BINDCPPJS
+#ifdef BINDCPPJS
 EMSCRIPTEN_BINDINGS(saw_class) {
 	class_<SAW>("SAW")
 	.constructor<>()
@@ -245,20 +245,18 @@ EMSCRIPTEN_BINDINGS(saw_class) {
 	//	.function("setSeed", &SAW::setSeed)
 	;
 }
-#endif
-
+#else
 int main() {
 	SAW saw;
 	short unsigned int seed[3] = {1,2,3};
-	saw.setRuntimeLmt(220);
+	saw.setRuntimeLmt(120);
 	saw.setSeed(seed);
 	saw.setWalkLength(8);
 	saw.setLaevus(0);
-	saw.setL(171);
+	saw.setL(175);
 	saw.setValueTarget(1);
 	saw.setVerbose(true);
 	saw.run();
 	return 0;
 }
-
-
+#endif

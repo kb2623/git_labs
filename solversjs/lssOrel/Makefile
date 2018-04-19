@@ -12,39 +12,31 @@ ifndef MAX_L
 endif
 
 CXXFLAGS=-std=c++0x -DMAX_L=$(MAX_L) -DNAME='\"$(NAME)\"' -DVERSION='\"$(VERSION)\"'
-EMFLAGS=-s VERBOSE=1 -s ASSERTIONS=1
-EMFLAGSWASM=$(EMFLAGS) -s WASM=1
-EMFLAGSJS=$(EMFLAGS) -s WASM=0
+EMFLAGS=-s VERBOSE=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1
+EMFLAGSWASM=$(EMFLAGS) -s WASM=1 -s BINARYEN_METHOD=\'native-wasm\'
+EMFLAGSJS=$(EMFLAGS) -s WASM=0 -s BINARYEN_METHOD=\'asmjs\'
 BINDCPPJS=--bind -DBINDCPPJS
-
-ifeq ($(SSE4.2),true)
-	CXXFLAGS:=$(CXXFLAGS) -msse4.2
-endif
-
-ifeq ($(M32),true)
-	CXXFLAGS:=$(CXXFLAGS) -m32
-	BIN:=$(NAME).32bit
-endif
-
-ifeq ($(M64),true)
-	CXXFLAGS:=$(CXXFLAGS) -m64
-endif
 
 OBJ=sequence.o saw.o main.o
 
-all:
+all: wasmb
+
+wasmb:
 	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -g0 -O3"
 
-wasmall:
-	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -g0 -O3"
+wasmrun:
+	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) --emrun $(CXXFLAGS) -DNDEBUG -g0 -O3"
 
-jsall:
+jsb:
 	make $(BIN) CXXFLAGS="$(EMFLAGSJS) $(CXXFLAGS) -DNDEBUG -g0 -O3"
 
-cpp2jswasm:
+jsrun:
+	make $(BIN) CXXFLAGS="$(EMFLAGSJS) --emrun $(CXXFLAGS) -DNDEBUG -g0 -O3"
+
+wasmb_cpp2js:
 	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(BINDCPPJS) $(CXXFLAGS) -DNDEBUG -g0 -O3"
 
-cpp2jsjs:
+jsb_cpp2js:
 	make $(BIN) CXXFLAGS="$(EMFLAGSJS) $(BINDCPPJS) $(CXXFLAGS) -DNDEBUG -g0 -O3"
 
 debug:
@@ -57,15 +49,20 @@ profile2:
 	make $(BIN) CXXFLAGS="$(EMFLAGSWASM) $(CXXFLAGS) -DNDEBUG -fprofile-arcs -ftest-coverage"
 
 $(BIN): $(OBJ) *.h
-	$(CXX) $(EMFLAGSWASM) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN).html
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN).html
 
 $(BIN)B: $(OBJ) *.h
-	$(CXX) $(EMFLAGSWASM) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN)B
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJ) -o $(BIN)B
 
 %.o : %.cpp *.h
-	$(CXX) $(EMFLAGSWASM) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+run:
+	emrun --no_browser --port 8800 $(BIN).html
+
+allrun: all run
 
 clean:
 	rm -f *.o $(BIN) *.gcda *.gcno *.gcov lssOrel.so 
-	rm -f *.gch *.js *.html *.wasm
+	rm -f *.gch *.js *.html *.wasm **.mem
 
